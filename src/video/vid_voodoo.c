@@ -997,8 +997,6 @@ voodoo_card_init(void)
     else
         voodoo_generate_filter_v1(voodoo);
 
-    pci_add_card((info->flags & DEVICE_AGP) ? PCI_ADD_AGP : PCI_ADD_NORMAL, voodoo_pci_read, voodoo_pci_write, voodoo, &voodoo->pci_slot);
-
     mem_mapping_add(&voodoo->mapping, 0, 0, NULL, voodoo_readw, voodoo_readl, NULL, voodoo_writew, voodoo_writel, NULL, MEM_MAPPING_EXTERNAL, voodoo);
 
     voodoo->fb_mem     = malloc(4 * 1024 * 1024);
@@ -1245,6 +1243,8 @@ voodoo_init(UNUSED(const device_t *info))
     memset(voodoo_set, 0, sizeof(voodoo_set_t));
 
     type = device_get_config_int("type");
+
+    pci_add_card((info->flags & DEVICE_AGP) ? PCI_ADD_AGP : PCI_ADD_NORMAL, voodoo_pci_read, voodoo_pci_write, voodoo, &voodoo->pci_slot);
 
     voodoo_set->nr_cards        = device_get_config_int("sli") ? 2 : 1;
     voodoo_set->voodoos[0]      = voodoo_card_init();
