@@ -1226,7 +1226,7 @@ voodoo_init(UNUSED(const device_t *info))
     voodoo_set->voodoos[0]      = voodoo_card_init();
     voodoo_set->voodoos[0]->set = voodoo_set;
 
-    pci_add_card((info->flags & DEVICE_AGP) ? PCI_ADD_AGP : PCI_ADD_NORMAL, voodoo_pci_read, voodoo_pci_write, voodoo_set->voodoos[0], &voodoo_set->voodoos[0]->pci_slot);
+    pci_add_card((info->flags & DEVICE_AGP) ? PCI_ADD_AGP : PCI_ADD_NORMAL, voodoo_pci_read, voodoo_pci_write, voodoo, &voodoo->pci_slot);
     if (voodoo_set->nr_cards == 2) {
         voodoo_set->voodoos[1] = voodoo_card_init();
 
