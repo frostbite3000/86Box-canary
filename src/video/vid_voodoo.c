@@ -844,16 +844,6 @@ voodoo_pci_read(int func, int addr, void *priv)
             if (voodoo->type == OBSIDIAN2_S12)
                 return 0x07;
 
-        case 0x5d:
-            if (voodoo->type == OBSIDIAN2_S12)
-                return voodoo->pci_regs[0x5d] & 0x7;
-        case 0x5e:
-            if (voodoo->type == OBSIDIAN2_S12)
-                return voodoo->pci_regs[0x5e] & 0x3;
-        case 0x5f:
-            if (voodoo->type == OBSIDIAN2_S12)
-                return voodoo->pci_regs[0x5f];
-
         default:
             break;
     }
@@ -896,18 +886,6 @@ voodoo_pci_write(int func, int addr, uint8_t val, void *priv)
         case 0x43:
             voodoo->initEnable = (voodoo->initEnable & ~0xff000000) | (val << 24);
             voodoo_recalcmapping(voodoo->set);
-            break;
-
-        case 0x5d:
-            voodoo->pci_regs[0x5d] = val & 0x7;
-            break;
-
-        case 0x5e:
-            voodoo->pci_regs[0x5e] = val & 0x3;
-            break;
-
-        case 0x5f:
-            voodoo->pci_regs[0x5f] = val;
             break;
 
         default:
