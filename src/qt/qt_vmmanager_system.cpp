@@ -669,7 +669,7 @@ VMManagerSystem::setupVars()
         char temp[512];
         device_get_name(&voodoo2_agp_device, 0, temp);
         auto voodoo2_config = getCategory(QString(temp));
-        int  voodoo2_type   = voodoo2_agp_config["type"].toInt();
+        int  voodoo2_type   = voodoo2_config["type"].toInt();
         switch (voodoo2_type) {
             case 0:
             default:
