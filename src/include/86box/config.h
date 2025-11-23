@@ -86,6 +86,7 @@ typedef struct config_t {
     /* Video category */
     int video_card;               /* Video card */
     int voodoo_enabled;           /* Voodoo enabled */
+    int voodoo2_enabled;          /* Voodoo enabled */
 
     /* Input devices category */
     int mouse_type;               /* Mouse type */

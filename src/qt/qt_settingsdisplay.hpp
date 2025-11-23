@@ -31,6 +31,9 @@ private slots:
     void on_checkBoxVoodoo_stateChanged(int state);
     void on_pushButtonConfigureVoodoo_clicked();
 
+    void on_checkBoxVoodoo2_stateChanged(int state);
+    void on_pushButtonConfigureVoodoo2_clicked();
+
     void on_checkBox8514_stateChanged(int state);
     void on_pushButtonConfigure8514_clicked();
 

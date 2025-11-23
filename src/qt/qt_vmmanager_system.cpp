@@ -663,6 +663,22 @@ VMManagerSystem::setupVars()
     }
     display_table[VMManager::Display::Name::Voodoo] = voodoo_name;
 
+    // Voodoo
+    QString voodoo2_name = "";
+    if (video_config.contains("voodoo2") && (video_config["voodoo2"].toInt() != 0)) {
+        char temp[512];
+        device_get_name(&voodoo2_agp_device, 0, temp);
+        auto voodoo2_config = getCategory(QString(temp));
+        int  voodoo2_type   = voodoo2_agp_config["type"].toInt();
+        switch (voodoo2_type) {
+            case 0:
+            default:
+                voodoo2_name = tr("Quantum3D Obsidian2 S-12 AGP");
+                break;
+        }
+    }
+    display_table[VMManager::Display::Name::Voodoo2] = voodoo2_name;
+
     // Drives
     // First the number of disks
     QMap<QString, int> disks;

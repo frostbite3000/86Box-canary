@@ -223,7 +223,7 @@ voodoo_readl(uint32_t addr, void *priv)
                     int written      = voodoo->cmd_written + voodoo->cmd_written_fifo + voodoo->cmd_written_fifo_2;
                     int busy         = (written - voodoo->cmd_read) || (voodoo->cmdfifo_depth_rd != voodoo->cmdfifo_depth_wr);
 
-                    if (SLI_ENABLED && voodoo->type != VOODOO_2) {
+                    if (SLI_ENABLED && voodoo->type != VOODOO_2 && voodoo->type != OBSIDIAN2_S12) {
                         voodoo_t *voodoo_other  = (voodoo == voodoo->set->voodoos[0]) ? voodoo->set->voodoos[1] : voodoo->set->voodoos[0];
                         int       other_written = voodoo_other->cmd_written + voodoo_other->cmd_written_fifo + voodoo->cmd_written_fifo_2;
 
@@ -720,7 +720,7 @@ voodoo_recalcmapping(voodoo_set_t *set)
 {
     if (set->nr_cards == 2) {
         if (set->voodoos[0]->pci_enable && set->voodoos[0]->memBaseAddr) {
-            if (set->voodoos[0]->type == VOODOO_2 && set->voodoos[1]->initEnable & (1 << 23)) {
+            if (set->voodoos[0]->type == VOODOO_2 && set->voodoos[0]->type == OBSIDIAN2_S12 && set->voodoos[1]->initEnable & (1 << 23)) {
                 voodoo_log("voodoo_recalcmapping (pri) with snoop : memBaseAddr %08X\n", set->voodoos[0]->memBaseAddr);
                 mem_mapping_disable(&set->voodoos[0]->mapping);
                 mem_mapping_set_addr(&set->snoop_mapping, set->voodoos[0]->memBaseAddr, 0x01000000);
@@ -781,6 +781,8 @@ voodoo_pci_read(int func, int addr, void *priv)
         case 0x02:
             if (voodoo->type == VOODOO_2)
                 return 0x02; /*Voodoo 2*/
+            else if (voodoo->type == OBSIDIAN2_S12)
+                return 0x02; /*Obsidian2 S-12 (same as Voodoo 2 device ID)*/
             else
                 return 0x01; /*SST-1 (Voodoo Graphics)*/
         case 0x03:
@@ -810,13 +812,47 @@ voodoo_pci_read(int func, int addr, void *priv)
         case 0x40:
             return voodoo->initEnable & 0xff;
         case 0x41:
-            if (voodoo->type == VOODOO_2)
+            if (voodoo->type == VOODOO_2 && voodoo->type == OBSIDIAN2_S12)
                 return 0x50 | ((voodoo->initEnable >> 8) & 0x0f);
             return (voodoo->initEnable >> 8) & 0x0f;
         case 0x42:
             return (voodoo->initEnable >> 16) & 0xff;
         case 0x43:
             return (voodoo->initEnable >> 24) & 0xff;
+
+        case 0x34:
+            if (voodoo->type == OBSIDIAN2_S12)
+                return 0x54;
+
+        case 0x54:
+            if (voodoo->type == OBSIDIAN2_S12)
+                return 0x02;
+        case 0x55:
+            if (voodoo->type == OBSIDIAN2_S12)
+                return 0x00;
+        case 0x56:
+            if (voodoo->type == OBSIDIAN2_S12)
+                return 0x10;
+
+        case 0x58:
+            if (voodoo->type == OBSIDIAN2_S12)
+                return 0x21;
+        case 0x59:
+            if (voodoo->type == OBSIDIAN2_S12)
+                return 0x02;
+        case 0x5b:
+            if (voodoo->type == OBSIDIAN2_S12)
+                return 0x07;
+
+        case 0x5d:
+            if (voodoo->type == OBSIDIAN2_S12)
+                return voodoo->pci_regs[0x5d] & 0x7;
+        case 0x5e:
+            if (voodoo->type == OBSIDIAN2_S12)
+                return voodoo->pci_regs[0x5e] & 0x3;
+        case 0x5f:
+            if (voodoo->type == OBSIDIAN2_S12)
+                return voodoo->pci_regs[0x5f];
 
         default:
             break;
@@ -860,6 +896,18 @@ voodoo_pci_write(int func, int addr, uint8_t val, void *priv)
         case 0x43:
             voodoo->initEnable = (voodoo->initEnable & ~0xff000000) | (val << 24);
             voodoo_recalcmapping(voodoo->set);
+            break;
+
+        case 0x5d:
+            voodoo->pci_regs[0x5d] = val & 0x7;
+            break;
+
+        case 0x5e:
+            voodoo->pci_regs[0x5e] = val & 0x3;
+            break;
+
+        case 0x5f:
+            voodoo->pci_regs[0x5f] = val;
             break;
 
         default:
@@ -936,17 +984,20 @@ voodoo_card_init(void)
         case VOODOO_2:
             voodoo->dual_tmus = 1;
             break;
+        case OBSIDIAN2_S12:
+            voodoo->dual_tmus = 1;
+            break;
 
         default:
             break;
     }
 
-    if (voodoo->type == VOODOO_2) /*generate filter lookup tables*/
+    if (voodoo->type == VOODOO_2 && voodoo->type == OBSIDIAN2_S12) /*generate filter lookup tables*/
         voodoo_generate_filter_v2(voodoo);
     else
         voodoo_generate_filter_v1(voodoo);
 
-    pci_add_card(PCI_ADD_NORMAL, voodoo_pci_read, voodoo_pci_write, voodoo, &voodoo->pci_slot);
+    pci_add_card((info->flags & DEVICE_AGP) ? PCI_ADD_AGP : PCI_ADD_NORMAL, voodoo_pci_read, voodoo_pci_write, voodoo, &voodoo->pci_slot);
 
     mem_mapping_add(&voodoo->mapping, 0, 0, NULL, voodoo_readw, voodoo_readl, NULL, voodoo_writew, voodoo_writel, NULL, MEM_MAPPING_EXTERNAL, voodoo);
 
@@ -1203,7 +1254,7 @@ voodoo_init(UNUSED(const device_t *info))
 
         voodoo_set->voodoos[1]->set = voodoo_set;
 
-        if (type == VOODOO_2) {
+        if (type == VOODOO_2 && type == OBSIDIAN2_S12) {
             voodoo_set->voodoos[0]->fbiInit5 |= FBIINIT5_MULTI_CVG;
             voodoo_set->voodoos[1]->fbiInit5 |= FBIINIT5_MULTI_CVG;
         } else {
@@ -1226,6 +1277,9 @@ voodoo_init(UNUSED(const device_t *info))
                 tmuConfig = 1 | (3 << 6);
             break;
         case VOODOO_2:
+            tmuConfig = 1 | (3 << 6);
+            break;
+        case OBSIDIAN2_S12:
             tmuConfig = 1 | (3 << 6);
             break;
 
@@ -1428,6 +1482,117 @@ static const device_config_t voodoo_config[] = {
   // clang-format on
 };
 
+static const device_config_t voodoo2_agp_config[] = {
+  // clang-format off
+    {
+        .name           = "type",
+        .description    = "Voodoo type",
+        .type           = CONFIG_SELECTION,
+        .default_int    = 0,
+        .file_filter    = NULL,
+        .spinner        = { 0 },
+        .selection = {
+            { .description = "Quantum3D Obsidian2 S-12 AGP"  .value = OBSIDIAN2_S12    },
+            { .description = ""                                                        }
+        },
+        .bios           = { { 0 } }
+    },
+    {
+        .name           = "framebuffer_memory",
+        .description    = "Framebuffer memory size",
+        .type           = CONFIG_SELECTION,
+        .default_string = NULL,
+        .default_int    = 2,
+        .file_filter    = NULL,
+        .spinner        = { 0 },
+        .selection      = {
+            { .description = "2 MB", .value = 2 },
+            { .description = "4 MB", .value = 4 },
+            { .description = ""                 }
+        },
+        .bios           = { { 0 } }
+    },
+    {
+        .name           = "texture_memory",
+        .description    = "Texture memory size",
+        .type           = CONFIG_SELECTION,
+        .default_string = NULL,
+        .default_int    = 2,
+        .file_filter    = NULL,
+        .spinner        = { 0 },
+        .selection      = {
+            { .description = "2 MB", .value = 2 },
+            { .description = "4 MB", .value = 4 },
+            { .description = ""                 }
+        },
+        .bios           = { { 0 } }
+    },
+    {
+        .name           = "bilinear",
+        .description    = "Bilinear filtering",
+        .type           = CONFIG_BINARY,
+        .default_string = NULL,
+        .default_int    = 1,
+        .file_filter    = NULL,
+        .spinner        = { 0 },
+        .selection      = { { 0 } },
+        .bios           = { { 0 } }
+    },
+    {
+        .name           = "dithersub",
+        .description    = "Dither subtraction",
+        .type           = CONFIG_BINARY,
+        .default_string = NULL,
+        .default_int    = 1,
+        .file_filter    = NULL,
+        .spinner        = { 0 },
+        .selection      = { { 0 } },
+        .bios           = { { 0 } }
+    },
+    {
+        .name           = "dacfilter",
+        .description    = "Screen Filter",
+        .type           = CONFIG_BINARY,
+        .default_string = NULL,
+        .default_int    = 0,
+        .file_filter    = NULL,
+        .spinner        = { 0 },
+        .selection      = { { 0 } },
+        .bios           = { { 0 } }
+    },
+    {
+        .name           = "render_threads",
+        .description    = "Render threads",
+        .type           = CONFIG_SELECTION,
+        .default_string = NULL,
+        .default_int    = 2,
+        .file_filter    = NULL,
+        .spinner        = { 0 },
+        .selection      = {
+            { .description = "1", .value = 1 },
+            { .description = "2", .value = 2 },
+            { .description = "4", .value = 4 },
+            { .description = ""              }
+        },
+        .bios           = { { 0 } }
+    },
+#ifndef NO_CODEGEN
+    {
+        .name           = "recompiler",
+        .description    = "Dynamic Recompiler",
+        .type           = CONFIG_BINARY,
+        .default_string = NULL,
+        .default_int    = 1,
+        .file_filter    = NULL,
+        .spinner        = { 0 },
+        .selection      = { { 0 } },
+        .bios           = { { 0 } }
+    },
+#endif
+    { .name = "", .description = "", .type = CONFIG_END }
+  // clang-format on
+};
+
 const device_t voodoo_device = {
     .name          = "3Dfx Voodoo Graphics",
     .internal_name = "voodoo",
@@ -1440,4 +1605,18 @@ const device_t voodoo_device = {
     .speed_changed = voodoo_speed_changed,
     .force_redraw  = voodoo_force_blit,
     .config        = voodoo_config
+};
+
+const device_t voodoo2_agp_device = {
+    .name          = "3Dfx Voodoo 2 (Quantum3D version)",
+    .internal_name = "voodoo2",
+    .flags         = DEVICE_AGP,
+    .local         = 0,
+    .init          = voodoo_init,
+    .close         = voodoo_close,
+    .reset         = NULL,
+    .available     = NULL,
+    .speed_changed = voodoo_speed_changed,
+    .force_redraw  = voodoo_force_blit,
+    .config        = voodoo2_agp_config
 };

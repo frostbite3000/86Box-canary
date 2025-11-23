@@ -284,6 +284,7 @@ extern void    video_pre_reset(int card);
 extern void    video_reset(int card);
 extern void    video_post_reset(void);
 extern void    video_voodoo_init(void);
+extern void    video_voodoo2_init(void);
 extern uint8_t video_force_resize_get_monitor(int monitor_index);
 extern void    video_force_resize_set_monitor(uint8_t res, int monitor_index);
 extern void    video_update_timing(void);
@@ -614,6 +615,7 @@ extern const device_t ps1vga_mca_device;
 
 /* 3DFX Voodoo Graphics */
 extern const device_t voodoo_device;
+extern const device_t voodoo2_agp_device;
 extern const device_t voodoo_banshee_device;
 extern const device_t creative_voodoo_banshee_device;
 extern const device_t quantum3d_raven_device;

@@ -257,6 +257,9 @@ VMManagerDetails::updateConfig(VMManagerSystem *passed_sysconfig)
     if (!passed_sysconfig->getDisplayValue(VMManager::Display::Name::Voodoo).isEmpty()) {
         videoSection->addSection("Voodoo", passed_sysconfig->getDisplayValue(VMManager::Display::Name::Voodoo));
     }
+    if (!passed_sysconfig->getDisplayValue(VMManager::Display::Name::Voodoo2).isEmpty()) {
+        videoSection->addSection("Voodoo", passed_sysconfig->getDisplayValue(VMManager::Display::Name::Voodoo2));
+    }
 
     // Disks
     storageSection->clear();

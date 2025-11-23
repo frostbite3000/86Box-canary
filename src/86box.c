@@ -191,6 +191,7 @@ int      gfxcard[GFXCARD_MAX]                   = { 0, 0 };       /* (C) graphic
 int      show_second_monitors                   = 1;              /* (C) show non-primary monitors */
 int      sound_is_float                         = 1;              /* (C) sound uses FP values */
 int      voodoo_enabled                         = 0;              /* (C) video option */
+int      voodoo2_enabled                        = 0;              /* (C) video option */
 int      ibm8514_standalone_enabled             = 0;              /* (C) video option */
 int      xga_standalone_enabled                 = 0;              /* (C) video option */
 int      da2_standalone_enabled                 = 0;              /* (C) video option */
@@ -1662,6 +1663,7 @@ pc_reset_hard_init(void)
     /* Initialize the Voodoo cards here inorder to minimize
        the chances of the SCSI controller ending up on the bridge. */
     video_voodoo_init();
+    video_voodoo2_init();
 
 #if defined(USE_VFIO) && defined(__linux__)
     /* Initialize VFIO */

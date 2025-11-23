@@ -54,6 +54,7 @@ namespace Display {
         Parallel,
         Audio,
         Voodoo,
+        Voodoo2,
         NIC,
         Keyboard,
         Mouse,

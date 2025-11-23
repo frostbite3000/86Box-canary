@@ -72,6 +72,7 @@ SettingsDisplay::save()
 #endif
 
     voodoo_enabled             = ui->checkBoxVoodoo->isChecked() ? 1 : 0;
+    voodoo2_enabled            = ui->checkBoxVoodoo2->isChecked() ? 1 : 0;
     ibm8514_standalone_enabled = ui->checkBox8514->isChecked() ? 1 : 0;
     xga_standalone_enabled     = ui->checkBoxXga->isChecked() ? 1 : 0;
     da2_standalone_enabled     = ui->checkBoxDa2->isChecked() ? 1 : 0;
@@ -156,6 +157,12 @@ SettingsDisplay::on_pushButtonConfigureVoodoo_clicked()
 }
 
 void
+SettingsDisplay::on_pushButtonConfigureVoodoo2_clicked()
+{
+    DeviceConfig::ConfigureDevice(&voodoo2_agp_device);
+}
+
+void
 SettingsDisplay::on_pushButtonConfigure8514_clicked()
 {
     if (machine_has_bus(machineId, MACHINE_BUS_MCA) > 0) {
@@ -193,6 +200,9 @@ SettingsDisplay::on_comboBoxVideo_currentIndexChanged(int index)
         ui->pushButtonConfigureVideo->setEnabled(video_card_has_config(videoCard[0]) > 0);
     bool machineHasPci = machine_has_bus(machineId, MACHINE_BUS_PCI) > 0;
     ui->pushButtonConfigureVoodoo->setEnabled(machineHasPci && ui->checkBoxVoodoo->isChecked());
+
+    bool machineHasAgp = machine_has_bus(machineId, MACHINE_BUS_AGP) > 0;
+    ui->pushButtonConfigureVoodoo2->setEnabled(machineHasPci && ui->checkBoxVoodoo2->isChecked());
 
     bool machineHasIsa16 = machine_has_bus(machineId, MACHINE_BUS_ISA16) > 0;
     bool machineHasMca   = machine_has_bus(machineId, MACHINE_BUS_MCA) > 0;
@@ -266,15 +276,20 @@ SettingsDisplay::on_comboBoxVideo_currentIndexChanged(int index)
         // Don't uncheck if
         // * Current card is voodoo
         // * Add-on voodoo was manually overridden in config
-        if (ui->checkBoxVoodoo->isChecked() && !currentCardIsVoodoo) {
+        if (ui->checkBoxVoodoo->isChecked() && ui->checkBoxVoodoo2->isChecked() && !currentCardIsVoodoo) {
             // Otherwise, uncheck the add-on voodoo when a main voodoo is selected
             ui->checkBoxVoodoo->setCheckState(Qt::Unchecked);
         }
         ui->checkBoxVoodoo->setDisabled(true);
+        ui->checkBoxVoodoo2->setDisabled(true);
     } else {
         ui->checkBoxVoodoo->setEnabled(machineHasPci);
         if (machineHasPci) {
             ui->checkBoxVoodoo->setChecked(voodoo_enabled);
+        }
+        ui->checkBoxVoodoo2->setEnabled(machineHasAgp);
+        if (machineHasAgp) {
+            ui->checkBoxVoodoo2->setChecked(voodoo2_enabled);
         }
     }
 }
@@ -283,6 +298,12 @@ void
 SettingsDisplay::on_checkBoxVoodoo_stateChanged(int state)
 {
     ui->pushButtonConfigureVoodoo->setEnabled(state == Qt::Checked);
+}
+
+void
+SettingsDisplay::on_checkBoxVoodoo2_stateChanged(int state)
+{
+    ui->pushButtonConfigureVoodoo2->setEnabled(state == Qt::Checked);
 }
 
 void

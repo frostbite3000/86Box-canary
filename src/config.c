@@ -536,6 +536,7 @@ load_video(void)
         ini_section_delete_var(cat, "8514a");
 
     voodoo_enabled                   = !!ini_section_get_int(cat, "voodoo", 0);
+    voodoo2_enabled                  = !!ini_section_get_int(cat, "voodoo2", 0);
     ibm8514_standalone_enabled       = !!ini_section_get_int(cat, "8514a", 0);
     ibm8514_active                   = ibm8514_standalone_enabled;
     xga_standalone_enabled           = !!ini_section_get_int(cat, "xga", 0);
@@ -2698,6 +2699,11 @@ save_video(void)
         ini_section_delete_var(cat, "voodoo");
     else
         ini_section_set_int(cat, "voodoo", voodoo_enabled);
+
+    if (voodoo2_enabled == 0)
+        ini_section_delete_var(cat, "voodoo2");
+    else
+        ini_section_set_int(cat, "voodoo2", voodoo2_enabled);
 
     if (ibm8514_standalone_enabled == 0)
         ini_section_delete_var(cat, "8514a");

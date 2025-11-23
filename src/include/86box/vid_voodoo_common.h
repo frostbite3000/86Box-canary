@@ -40,6 +40,7 @@ enum {
     VOODOO_1 = 0,
     VOODOO_SB50,
     VOODOO_2,
+    OBSIDIAN2_S12,
     VOODOO_BANSHEE,
     VOODOO_3
 };
@@ -269,6 +270,7 @@ typedef struct voodoo_t {
     int pci_enable;
 
     uint8_t  pci_slot;
+    uint8_t  pci_regs[256];
 
     uint8_t  dac_data[8];
     int      dac_reg;

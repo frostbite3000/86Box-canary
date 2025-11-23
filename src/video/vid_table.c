@@ -428,6 +428,14 @@ video_voodoo_init(void)
         device_add(&voodoo_device);
 }
 
+void
+video_voodoo2_init(void)
+{
+    /* Enable the Voodoo if configured. */
+    if (voodoo2_enabled)
+        device_add(&voodoo2_agp_device);
+}
+
 int
 video_card_available(int card)
 {
