@@ -720,7 +720,7 @@ voodoo_recalcmapping(voodoo_set_t *set)
 {
     if (set->nr_cards == 2) {
         if (set->voodoos[0]->pci_enable && set->voodoos[0]->memBaseAddr) {
-            if (set->voodoos[0]->type == VOODOO_2 && set->voodoos[0]->type == OBSIDIAN2_S12 && set->voodoos[1]->initEnable & (1 << 23)) {
+            if ((set->voodoos[0]->type == VOODOO_2 || set->voodoos[0]->type == OBSIDIAN2_S12) && set->voodoos[1]->initEnable & (1 << 23)) {
                 voodoo_log("voodoo_recalcmapping (pri) with snoop : memBaseAddr %08X\n", set->voodoos[0]->memBaseAddr);
                 mem_mapping_disable(&set->voodoos[0]->mapping);
                 mem_mapping_set_addr(&set->snoop_mapping, set->voodoos[0]->memBaseAddr, 0x01000000);
@@ -812,7 +812,7 @@ voodoo_pci_read(int func, int addr, void *priv)
         case 0x40:
             return voodoo->initEnable & 0xff;
         case 0x41:
-            if (voodoo->type == VOODOO_2 && voodoo->type == OBSIDIAN2_S12)
+            if (voodoo->type == VOODOO_2 || voodoo->type == OBSIDIAN2_S12)
                 return 0x50 | ((voodoo->initEnable >> 8) & 0x0f);
             return (voodoo->initEnable >> 8) & 0x0f;
         case 0x42:
@@ -992,7 +992,7 @@ voodoo_card_init(void)
             break;
     }
 
-    if (voodoo->type == VOODOO_2 && voodoo->type == OBSIDIAN2_S12) /*generate filter lookup tables*/
+    if (voodoo->type == VOODOO_2 || voodoo->type == OBSIDIAN2_S12) /*generate filter lookup tables*/
         voodoo_generate_filter_v2(voodoo);
     else
         voodoo_generate_filter_v1(voodoo);
@@ -1244,17 +1244,17 @@ voodoo_init(UNUSED(const device_t *info))
 
     type = device_get_config_int("type");
 
-    pci_add_card((info->flags & DEVICE_AGP) ? PCI_ADD_AGP : PCI_ADD_NORMAL, voodoo_pci_read, voodoo_pci_write, voodoo, &voodoo->pci_slot);
-
     voodoo_set->nr_cards        = device_get_config_int("sli") ? 2 : 1;
     voodoo_set->voodoos[0]      = voodoo_card_init();
     voodoo_set->voodoos[0]->set = voodoo_set;
+
+    pci_add_card((info->flags & DEVICE_AGP) ? PCI_ADD_AGP : PCI_ADD_NORMAL, voodoo_pci_read, voodoo_pci_write, voodoo_set->voodoos[0], &voodoo_set->voodoos[0]->pci_slot);
     if (voodoo_set->nr_cards == 2) {
         voodoo_set->voodoos[1] = voodoo_card_init();
 
         voodoo_set->voodoos[1]->set = voodoo_set;
 
-        if (type == VOODOO_2 && type == OBSIDIAN2_S12) {
+        if (type == VOODOO_2 || type == OBSIDIAN2_S12) {
             voodoo_set->voodoos[0]->fbiInit5 |= FBIINIT5_MULTI_CVG;
             voodoo_set->voodoos[1]->fbiInit5 |= FBIINIT5_MULTI_CVG;
         } else {
@@ -1492,7 +1492,7 @@ static const device_config_t voodoo2_agp_config[] = {
         .file_filter    = NULL,
         .spinner        = { 0 },
         .selection = {
-            { .description = "Quantum3D Obsidian2 S-12 AGP"  .value = OBSIDIAN2_S12    },
+            { .description = "Quantum3D Obsidian2 S-12 AGP",  .value = OBSIDIAN2_S12   },
             { .description = ""                                                        }
         },
         .bios           = { { 0 } }
