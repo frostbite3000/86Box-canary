@@ -975,6 +975,16 @@ voodoo_card_init(void)
     else
         voodoo_generate_filter_v1(voodoo);
 
+    {
+        const device_t *dev = device_context_get_device();
+        int             pci_add_type;
+        if (dev && (dev->flags & DEVICE_AGP) && voodoo->type == OBSIDIAN2_S12)
+            pci_add_type = PCI_ADD_AGP;
+        else
+            pci_add_type = PCI_ADD_NORMAL;
+        pci_add_card(pci_add_type, voodoo_pci_read, voodoo_pci_write, voodoo, &voodoo->pci_slot);
+    }
+
     mem_mapping_add(&voodoo->mapping, 0, 0, NULL, voodoo_readw, voodoo_readl, NULL, voodoo_writew, voodoo_writel, NULL, MEM_MAPPING_EXTERNAL, voodoo);
 
     voodoo->fb_mem     = malloc(4 * 1024 * 1024);
@@ -1226,7 +1236,6 @@ voodoo_init(UNUSED(const device_t *info))
     voodoo_set->voodoos[0]      = voodoo_card_init();
     voodoo_set->voodoos[0]->set = voodoo_set;
 
-    pci_add_card((info->flags & DEVICE_AGP) ? PCI_ADD_AGP : PCI_ADD_NORMAL, voodoo_pci_read, voodoo_pci_write, voodoo, &voodoo->pci_slot);
     if (voodoo_set->nr_cards == 2) {
         voodoo_set->voodoos[1] = voodoo_card_init();
 
