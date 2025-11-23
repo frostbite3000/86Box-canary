@@ -820,30 +820,6 @@ voodoo_pci_read(int func, int addr, void *priv)
         case 0x43:
             return (voodoo->initEnable >> 24) & 0xff;
 
-        case 0x34:
-            if (voodoo->type == OBSIDIAN2_S12)
-                return 0x54;
-
-        case 0x54:
-            if (voodoo->type == OBSIDIAN2_S12)
-                return 0x02;
-        case 0x55:
-            if (voodoo->type == OBSIDIAN2_S12)
-                return 0x00;
-        case 0x56:
-            if (voodoo->type == OBSIDIAN2_S12)
-                return 0x10;
-
-        case 0x58:
-            if (voodoo->type == OBSIDIAN2_S12)
-                return 0x21;
-        case 0x59:
-            if (voodoo->type == OBSIDIAN2_S12)
-                return 0x02;
-        case 0x5b:
-            if (voodoo->type == OBSIDIAN2_S12)
-                return 0x07;
-
         default:
             break;
     }
